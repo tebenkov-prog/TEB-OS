@@ -53,7 +53,7 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
-// Уведомление о закрытии
+// Уведомление о закрытии,временно не работает)
 app.on('will-quit', async (event) => {
     // Важно: уведомление при закрытии может не успеть уйти, 
     // если не подождать завершения запроса
@@ -94,4 +94,5 @@ async function sendTelegram(message) {
     } catch (error) {
         console.error("Ошибка TG:", error.message);
     }
+
 }
