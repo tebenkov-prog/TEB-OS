@@ -66,7 +66,3 @@ npm run build
 
 📨 Контакты разработчика
 Creator: @tebenkov_games
-
-Support & Updates: Telegram Channel
-
-System Status: Online | Version: 1.0.0 | Powered by Gemini
