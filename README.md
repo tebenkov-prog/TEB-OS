@@ -58,15 +58,3 @@ Styles: HTML5 / CSS3 (Neon Glassmorphism)
 API: Open-Meteo (Погода), IPapi (Геолокация), Telegram Bot API
 
 Collaborators: Created by Gemini AI & @tebenkov_games
-
-Совет: Если ты хочешь сразу залить код на GitHub, используй эти команды в папке D:\!tebos-browser:
-
-git init
-
-git add .
-
-git commit -m "Initial commit: Cyberpunk UI and TG logging"
-
-git remote add origin https://github.com/tebenkov-prog/tebos-browser.git
-
-git push -u origin main
