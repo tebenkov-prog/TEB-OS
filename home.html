@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        ::-webkit-scrollbar { display: none; }
+
+        body { 
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 { 
+            color: #00ffcc; 
+            font-size: 70px; 
+            margin-bottom: 40px; 
+            text-shadow: 0 0 30px rgba(0,255,204,0.8); 
+            letter-spacing: 15px; 
+            font-weight: 900;
+        }
+        
+        /* Сетка с нормальными пробелами */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 180px); /* Увеличили ширину колонки */
+            gap: 30px; /* Увеличили пробел между плитками */
+            padding: 20px;
+        }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.7); 
+            border: 1px solid rgba(0, 255, 204, 0.3); 
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 25px; 
+            text-align: center; 
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            text-decoration: none; 
+            color: white;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+        }
+
+        .card:hover { 
+            background: rgba(0, 255, 204, 0.15); 
+            border-color: #00ffcc; 
+            transform: scale(1.05); 
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+        }
+
+        .card img { 
+            width: 55px !important; 
+            height: 55px !important; 
+            object-fit: contain;
+            margin-bottom: 15px; 
+        }
+
+        .weather-box {
+            margin-top: 40px; 
+            padding: 15px 35px; 
+            border-radius: 50px;
+            background: rgba(0, 0, 0, 0.8); 
+            border: 1px solid #00ffcc; 
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        #city-name { font-size: 0.8em; color: #888; display: block; text-transform: uppercase; letter-spacing: 2px; }
+        #temp { color: #00ffcc; font-weight: bold; font-size: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <h1>TEBOS</h1>
+
+    <div class="grid">
+        <a href="https://vk.com" class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/145/145813.png">
+            <span>ВКонтакте</span>
+        </a>
+        <a href="https://web.telegram.org" class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png">
+            <span>Telegram</span>
+        </a>
+        <a href="https://youtube.com" class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png">
+            <span>YouTube</span>
+        </a>
+        <a href="https://mail.google.com" class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png">
+            <span>Gmail</span>
+        </a>
+        <a href="https://google.com" class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png">
+            <span>Google</span>
+        </a>
+        <a href="https://pogoda.yandex.ru" class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/4814/4814268.png">
+            <span>Погода</span>
+        </a>
+    </div>
+
+    <div class="weather-box">
+        <span id="city-name">Определяем город...</span>
+        <span id="temp">--°C</span> <span id="icon">⌛</span>
+    </div>
+
+    <script>
+        async function initWeather() {
+            try {
+                // 1. Узнаем город и координаты по IP
+                const geoRes = await fetch('https://ipapi.co/json/');
+                const geoData = await geoRes.json();
+                
+                const city = geoData.city || "Неизвестно";
+                const lat = geoData.latitude;
+                const lon = geoData.longitude;
+
+                document.getElementById('city-name').innerText = city;
+
+                // 2. Получаем погоду по этим координатам
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                const weatherData = await weatherRes.json();
+                
+                const temp = Math.round(weatherData.current_weather.temperature);
+                document.getElementById('temp').innerText = (temp > 0 ? '+' : '') + temp + '°C';
+                
+                const code = weatherData.current_weather.weathercode;
+                let icon = '☀️';
+                if (code > 0) icon = '⛅';
+                if (code > 50) icon = '🌧️';
+                if (code > 70) icon = '❄️';
+                document.getElementById('icon').innerText = icon;
+
+            } catch (err) {
+                document.getElementById('city-name').innerText = "Ошибка локации";
+                console.error(err);
+            }
+        }
+
+        initWeather();
+        setInterval(initWeather, 1800000); // Обновлять каждые 30 мин
+    </script>
+</body>
+</html>

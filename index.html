@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { box-sizing: border-box; }
+        /* Скрываем полосу прокрутки для чистого интерфейса */
+        ::-webkit-scrollbar { display: none; }
+
+        body { margin: 0; display: flex; flex-direction: column; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; overflow: hidden; }
+        
+        .tabs-bar { display: flex; background: #121212; padding: 5px 10px 0 10px; gap: 5px; align-items: center; border-bottom: 1px solid #333; }
+        
+        .tab { 
+            background: #252525; padding: 8px 15px; border-radius: 8px 8px 0 0; 
+            cursor: pointer; min-width: 140px; max-width: 200px; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 12px; border: 1px solid #333; border-bottom: none;
+            display: flex; justify-content: space-between; align-items: center;
+            user-select: none;
+        }
+        .tab.active { background: #2d2d2d; border-color: #00ffcc; color: #00ffcc; font-weight: bold; }
+        
+        .close-tab { margin-left: 10px; font-weight: bold; color: #777; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+        .close-tab:hover { background: #ff4444; color: white; }
+
+        .add-tab { background: #00ffcc; border: none; color: #000; width: 24px; height: 24px; cursor: pointer; border-radius: 5px; font-weight: bold; margin-bottom: 5px; }
+
+        .toolbar { background: #2d2d2d; padding: 10px 15px; display: flex; gap: 10px; align-items: center; }
+        .btn { background: #333; border: none; color: #00ffcc; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        
+        #url-input { flex: 1; background: #000; border: 1px solid #444; border-radius: 20px; padding: 8px 18px; color: #00ffcc; outline: none; }
+
+        #views-container { flex: 1; position: relative; background: #000; }
+        webview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; visibility: hidden; }
+        webview.active { visibility: visible; }
+    </style>
+</head>
+<body>
+
+    <div class="tabs-bar">
+        <div id="tabs-wrapper" style="display: flex; gap: 5px;"></div>
+        <button class="add-tab" id="add-tab-btn">+</button>
+    </div>
+
+    <div class="toolbar">
+        <button class="btn" id="back">←</button>
+        <button class="btn" id="refresh">↻</button>
+        <button class="btn" id="home-btn">🏠</button>
+        <input type="text" id="url-input" placeholder="Введите адрес или запрос...">
+        <button class="btn" id="go">GO</button>
+    </div>
+    
+    <div id="views-container"></div>
+
+    <script>
+        const tabsWrapper = document.getElementById('tabs-wrapper');
+        const container = document.getElementById('views-container');
+        const input = document.getElementById('url-input');
+        const addBtn = document.getElementById('add-tab-btn');
+
+        let tabCount = 0;
+        const homeURL = 'file://' + __dirname + '/home.html';
+
+        function createTab(url = homeURL) {
+            tabCount++;
+            const id = 'view-' + tabCount;
+
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.id = 'tab-' + id;
+            // Сразу ставим "Новая вкладка" вместо пути к файлу
+            tab.innerHTML = `<span>Новая вкладка</span><span class="close-tab">×</span>`;
+            
+            // ЛЕВАЯ КНОПКА: Переключить
+            tab.onclick = () => switchTab(id);
+            
+            // КОЛЁСИКО (СРЕДНЯЯ КНОПКА): Закрыть
+            tab.onauxclick = (e) => {
+                if (e.button === 1) closeTab(id);
+            };
+
+            // КРЕСТИК: Закрыть
+            tab.querySelector('.close-tab').onclick = (e) => {
+                e.stopPropagation();
+                closeTab(id);
+            };
+
+            tabsWrapper.appendChild(tab);
+
+            const webview = document.createElement('webview');
+            webview.id = id;
+            webview.src = url;
+            webview.setAttribute('webpreferences', 'contextIsolation=false');
+            container.appendChild(webview);
+
+            webview.addEventListener('did-finish-load', () => {
+                let title = webview.getTitle();
+                // Если это наша главная, подменяем заголовок
+                if (webview.getURL().includes('home.html')) title = "Новая вкладка";
+                tab.querySelector('span').innerText = title || "Загрузка...";
+                
+                if (webview.classList.contains('active')) {
+                    updateURLInput(webview.getURL());
+                }
+            });
+
+            switchTab(id);
+        }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab, webview').forEach(el => el.classList.remove('active'));
+            const currentTab = document.getElementById('tab-' + id);
+            const currentView = document.getElementById(id);
+            
+            if(currentTab && currentView) {
+                currentTab.classList.add('active');
+                currentView.classList.add('active');
+                updateURLInput(currentView.getURL());
+            }
+        }
+
+        function closeTab(id) {
+            const tab = document.getElementById('tab-' + id);
+            const view = document.getElementById(id);
+            
+            if (tab.classList.contains('active')) {
+                const nextTab = tab.nextElementSibling || tab.previousElementSibling;
+                if (nextTab) {
+                    switchTab(nextTab.id.replace('tab-', ''));
+                }
+            }
+            
+            tab.remove();
+            view.remove();
+            
+            if (document.querySelectorAll('.tab').length === 0) createTab();
+        }
+
+        function updateURLInput(url) {
+            input.value = url.includes('home.html') ? "" : url;
+        }
+
+        function loadURL() {
+            const activeView = document.querySelector('webview.active');
+            let val = input.value;
+            if (!val.startsWith('http') && !val.startsWith('file://')) {
+                val = val.includes('.') ? 'http://' + val : 'https://google.com/search?q=' + encodeURIComponent(val);
+            }
+            activeView.loadURL(val);
+        }
+
+        addBtn.onclick = () => createTab();
+        document.getElementById('go').onclick = loadURL;
+        input.onkeydown = (e) => { if (e.key === 'Enter') loadURL(); };
+        document.getElementById('back').onclick = () => document.querySelector('webview.active').goBack();
+        document.getElementById('refresh').onclick = () => document.querySelector('webview.active').reload();
+        document.getElementById('home-btn').onclick = () => document.querySelector('webview.active').loadURL(homeURL);
+
+        createTab();
+    </script>
+</body>
+</html>

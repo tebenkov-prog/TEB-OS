@@ -1,0 +1,20 @@
+{
+  "name": "tebos-browser",
+  "version": "1.0.0",
+  "description": "TEBOS Browser",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-packager . TEBOS --platform=win32 --arch=x64 --out=dist --overwrite",
+    "dist": "npm run build"
+  },
+  "author": "Tebos",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.7"
+  }
+}
