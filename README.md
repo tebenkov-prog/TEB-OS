@@ -27,13 +27,6 @@ Telegram: @tebenkov_games
 2. Клонирование и установка
 Открой терминал и выполни следующие команды:
 
-Bash
-# Клонируй репозиторий
-git clone https://github.com/tebenkov-prog/tebos-browser.git
-
-# Перейди в папку проекта
-cd tebos-browser
-
 # Установи все зависимости (electron, axios, и др.)
 npm install
 3. Настройка Telegram (опционально)
